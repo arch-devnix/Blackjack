@@ -1,16 +1,35 @@
-/*
-Blackjack V1
-Currently still learning JS hopefully i'll get good "enough" soon
-
-[1.] Start with the shuffle function
-[2.] Make an bot that plays automatically after player dealt
-[3.] Then make the actual game loop, where a card is given to player, player could answer a prompt with s for stand and h for hit, i'll add other options
-[4.] Go make V2 with other more complex choices. Should i start hooking it up to html and css? idk we'll see
-*/
-
+// ---- State ----
 let deck = [];
 let playerHand = [];
 let botHand = [];
+let gameOver = false;
+
+function reset() {
+  deck = [];
+  playerHand = [];
+  botHand = [];
+  gameOver = false;
+}
+
+function endRound(message) {
+  gameOver = true;
+  render();
+  statusEl.textContent = message;
+  dealBtn.disabled = false;
+  hitBtn.disabled = true;
+  standBtn.disabled = true;
+}
+
+// ---- Element references ----
+const playerHandEl = document.querySelector("#playerHand");
+const dealerHandEl = document.querySelector("#dealerHand");
+const playerScoreEl = document.querySelector("#playerScore");
+const dealerScoreEl = document.querySelector("#dealerScore");
+const statusEl = document.querySelector("#status");
+
+const dealBtn = document.querySelector("#dealBtn");
+const hitBtn = document.querySelector("#hitBtn");
+const standBtn = document.querySelector("#standBtn");
 
 // Fisher Yates shuffle, great but simple "realistic" shuffling
 function shuffle(deck) {
@@ -115,111 +134,106 @@ function bot() {
   while (score(botHand) < 17) {
     deal(botHand);
   }
-
-  if (score(botHand) > 21) {
-    return `Busted: ${score(botHand)}`;
-  }
-  return `Score: ${score(botHand)}`;
 }
 
-function main() {
-  let running = true;
-  while (running) {
-    let exit = prompt("Exit? [y/n]: ");
-        
-    if (exit === "y") {
-          
-      running = false;
-      break;
-          
-    } else if (exit === "n") {
-        deck = [];
-        playerHand = [];
-        botHand = [];
-      }
-      else {
-        console.log("Invalid input");
-        continue;
-      }
-    console.log("Welcome to blackjack!\n==========\n");
-    
-    createDeck();
-    deal(playerHand);
-    deal(botHand);
-    deal(playerHand);
-    deal(botHand);
-    bot();
-    
-    if (playerHand.length === 2 && score(playerHand) === 21) {
-      if (botHand.length === 2 && score(botHand) === 21) {
-          console.log("Blackjack! But dealer also got blackjack hahaha, you're so bad...")
-        } else {
-            console.log("Blackjack!")
-          }
-          
-        console.log("Bot hand: \n==========")
-        for (let i = 0; i < botHand.length; i++) {
-            console.log(`${botHand[i].suit} | ${botHand[i].value}`);
-        }
-        break;
-      }
-    
-    console.log("Bot hand: \n==========");
-        console.log(`${botHand[0].suit} | ${botHand[0].value}`)
-        console.log("??? | ???\n")
-    while (true) {
-      
-      console.log(`Your Hand | ${score(playerHand)}: \n==========`);
-      
-      for (let i = 0; i < playerHand.length; i++) {
-            console.log(`${playerHand[i].suit} | ${playerHand[i].value}`);
-      }
-      console.log()
-      let choice = prompt("Hit or stand? [h/s]:");
-      console.log()
+// ---- Render ----
+function render() {
+  playerHandEl.innerHTML = "";
+  dealerHandEl.innerHTML = "";
 
-      if (choice === "h") {
-        deal(playerHand);
-        if (score(playerHand) > 21) {
-          console.log(`Busted with ${score(playerHand)}`);
-          console.log("Your Hand: \n==========")
-          for (let i = 0; i < playerHand.length; i++) {
-            console.log(`${playerHand[i].suit} | ${playerHand[i].value}`);
-          }
-          
-          deck = [];
-          playerHand = [];
-          botHand = [];
-          break;
-        }
-        
-      } else if (choice === "s") {
-
-        const botS = score(botHand)
-        const playerS = score(playerHand)
-        let feedbackMsg = "How has this message even been logged"
-        
-        if (botS <= 21) {
-          if (playerS > botS) {
-          console.log()
-          feedbackMsg = `Won | bot: ${botS} -|- player: ${playerS}`;
-        } else if (botS === playerS) {
-            feedbackMsg = `Tie | bot: ${botS} -|- player: ${playerS}`;
-        } else {
-            feedbackMsg = `Lost | bot: ${botS} -|- player: ${playerS}`;
-        }
-        } else { feedbackMsg = `Won-bot went bust| bot: ${botS} -|- player: ${playerS}`; }
-
-        console.log(feedbackMsg)
-        
-        console.log("Bot hand: \n==========")
-        for (let i = 0; i < botHand.length; i++) {
-          console.log(`${botHand[i].suit} | ${botHand[i].value}`);
-        }
-        break;
-      } else { console.log("Invalid Input\n"); continue; }
-    }
-   }
+  for (const card of playerHand) {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.textContent = card.value;
+    playerHandEl.appendChild(el);
   }
 
-main()
+  for (let i = 0; i < botHand.length; i++) {
+    const el = document.createElement("div");
+    el.className = "card";
+
+    if (i === 1 && !gameOver) {
+      el.textContent = "🂠";
+      el.classList.add("hidden");
+    } else {
+      el.textContent = botHand[i].value;
+    }
+
+    dealerHandEl.appendChild(el);
+  }
+
+  playerScoreEl.textContent = score(playerHand);
+
+  // only show dealer score when revealed
+  dealerScoreEl.textContent = gameOver ? score(botHand) : "?";
+}
+
+// ---- Game actions ----
+function startRound() {
+  statusEl.textContent = "Playing..."
+  reset()
+
+  createDeck();
+
+  deal(playerHand);
+  deal(botHand);
+  deal(playerHand);
+  deal(botHand);
+
+  const playerBJ = playerHand.length === 2 && score(playerHand) === 21;
+  const dealerBJ = botHand.length === 2 && score(botHand) === 21;
+
+  if (playerBJ && dealerBJ) {
+    endRound("Both blackjack, push.");
+    return;
+  } else if (playerBJ) {
+    endRound("Blackjack! You win!");
+    return;
+  } else if (dealerBJ) {
+    bot();
+    endRound("Dealer blackjack, you lose.");
+    return;
+  }
+
+  render();
+  dealBtn.disabled = true;
+  hitBtn.disabled = false;
+  standBtn.disabled = false;
+}
+
+function hit() {
+  if (gameOver) return;
+
+  deal(playerHand);
+
+  render();
+
+  if (score(playerHand) > 21) {
+    endRound("You busted!");
+  }
+}
+
+function stand() {
+  if (gameOver) return;
+
+  bot();
+  render();
+
+  const player = score(playerHand);
+  const botScore = score(botHand);
+
+  if (botScore > 21) {
+    endRound("Dealer busted — you win!");
+  } else if (player > botScore) {
+    endRound("You win!");
+  } else if (player < botScore) {
+    endRound("Dealer wins.");
+  } else {
+    endRound("Push (tie).");
+  }
+}
+
+// ---- Events ----
+dealBtn.addEventListener("click", startRound);
+hitBtn.addEventListener("click", hit);
+standBtn.addEventListener("click", stand);
