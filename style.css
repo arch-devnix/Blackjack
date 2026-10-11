@@ -1,6 +1,6 @@
 body {
-  min-height: 100vh;
   margin: 0;
+  min-height: 100vh;
   font-family: system-ui, sans-serif;
   text-align: center;
   background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKldIb8jD7nRq715jNXPdT2k5WbRdhBZ8itS5fct2Z5g&s=10");
@@ -9,10 +9,13 @@ body {
   background-position: center;
   color: white;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 #title {
   color: black;
+  background: none;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.4);
 }
 
 .hand {
@@ -31,6 +34,7 @@ body {
   font-size: 24px;
   font-weight: bold;
   min-width: 40px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 #status {
@@ -41,14 +45,38 @@ body {
 
 button {
   font-size: 16px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   margin: 0 5px;
-  cursor: pointer;
-  border-radius: 6px;
   border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s, filter 0.1s, box-shadow 0.1s;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+#dealBtn {
+  background: #d4af37;
+  color: #1b1b1b;
+}
+
+#hitBtn,
+#standBtn {
+  background: #f0f0f0;
+  color: #222;
 }
