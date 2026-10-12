@@ -12,6 +12,13 @@ body {
   box-sizing: border-box;
 }
 
+#controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 #table {
   background: rgba(0, 0, 0, 0.25);
   border: 3px solid rgba(255, 255, 255, 0.2);
@@ -221,7 +228,26 @@ button:active:not(:disabled) {
   color: #1b1b1b;
 }
 
-#hitBtn,
+#doubleBtn {
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border-radius: 50%;
+  background: gold;
+  color: #222;
+  border: none;
+  font-size: 20px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: -1px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s, filter 0.1s, box-shadow 0.1s;
+  vertical-align: middle;
+}
+
 #standBtn {
   background: #f0f0f0;
   color: #222;
