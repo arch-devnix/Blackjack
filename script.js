@@ -191,10 +191,14 @@ function endRound(message, result) {
   doubleBtn.classList.add("invisible");
   standBtn.classList.add("invisible");
 
+  chipBtns.forEach(btn => btn.disabled = false);
+  clearBetBtn.disabled = false;
+
   if (chips <= 0) {
     statusEl.textContent = "Out of chips — game over!";
     dealBtn.classList.add("invisible");
     chipBtns.forEach(btn => btn.disabled = true);
+    clearBetBtn.disabled = true;
   }
 }
 
@@ -203,6 +207,9 @@ function startRound() {
   if (currentBet > chips) return;
 
   chips -= currentBet;
+
+  chipBtns.forEach(btn => btn.disabled = true);
+  clearBetBtn.disabled = true;
 
   statusEl.textContent = "Playing...";
   reset();
