@@ -5,6 +5,7 @@ let botHand = [];
 let gameOver = false;
 let chips = 100;
 let currentBet = 0;
+const maxBet = 500;
 
 // ---- Element references ----
 const playerHandEl = document.querySelector("#playerHand");
@@ -15,12 +16,33 @@ const statusEl = document.querySelector("#status");
 
 const dealBtn = document.querySelector("#dealBtn");
 const hitBtn = document.querySelector("#hitBtn");
+const doubleBtn = document.querySelector("#doubleBtn");
 const standBtn = document.querySelector("#standBtn");
 
 const chipsEl = document.querySelector("#chips");
 const playerBetEl = document.querySelector("#playerBet");
 const chipBtns = document.querySelectorAll(".chipBtn");
 const clearBetBtn = document.querySelector("#clearBetBtn");
+
+// ---- Audio ----
+const sounds = {
+  deal:       new Audio("sounds/cardDeal.wav"),
+  bet:        new Audio("sounds/bet.wav"),
+  click:      new Audio("sounds/btnClick.wav"),
+  win:        new Audio("sounds/winNormal.wav"),
+  blackjack:  new Audio("sounds/winBlackjack.wav"),
+  lose:       new Audio("sounds/loss.wav"),
+};
+
+for (const s of Object.values(sounds)) {
+  s.volume = 0.5;
+}
+
+function playSound(name) {
+  const s = sounds[name];
+  s.currentTime = 0;
+  s.play();
+}
 
 // ---- Deck ----
 function shuffle(deck) {
@@ -44,11 +66,12 @@ function createDeck() {
   shuffle(deck);
 }
 
-function deal(hand) {
+function deal(hand, silent = false) {
   if (deck.length === 0) {
     createDeck();
   }
   hand.push(deck.pop());
+  if (!silent) playSound("deal");
 }
 
 // ---- Scoring ----
@@ -129,6 +152,8 @@ function render() {
 // ---- Betting ----
 function addToBet(amount) {
   if (currentBet + amount > chips) return;
+  if (currentBet + amount > maxBet) return;
+
   currentBet += amount;
   render();
 }
@@ -147,18 +172,23 @@ function reset() {
 }
 
 function endRound(message, result) {
-  if (result === "win") chips += currentBet * 2;
-  else if (result === "push") chips += currentBet;
+  if (result === "win")            chips += currentBet * 2;
+  else if (result === "push")      chips += currentBet;
   else if (result === "blackjack") chips += currentBet * 2.5;
 
   currentBet = 0;
-
   gameOver = true;
   render();
   statusEl.textContent = message;
 
+  if (result === "win")            playSound("win");
+  else if (result === "blackjack") playSound("blackjack");
+  else if (result === "lose")      playSound("lose");
+  else                             playSound("win");
+
   dealBtn.classList.remove("invisible");
   hitBtn.classList.add("invisible");
+  doubleBtn.classList.add("invisible");
   standBtn.classList.add("invisible");
 
   if (chips <= 0) {
@@ -178,10 +208,10 @@ function startRound() {
   reset();
   createDeck();
 
-  deal(playerHand);
-  deal(botHand);
-  deal(playerHand);
-  deal(botHand);
+  deal(playerHand, true);
+  deal(botHand, true);
+  deal(playerHand, true);
+  deal(botHand, true);
 
   const playerBJ = playerHand.length === 2 && score(playerHand) === 21;
   const dealerBJ = botHand.length === 2 && score(botHand) === 21;
@@ -200,11 +230,13 @@ function startRound() {
   render();
   dealBtn.classList.add("invisible");
   hitBtn.classList.remove("invisible");
+  doubleBtn.classList.remove("invisible");
   standBtn.classList.remove("invisible");
 }
 
 function hit() {
   if (gameOver) return;
+  doubleBtn.classList.add("invisible");
 
   deal(playerHand);
   render();
@@ -212,6 +244,25 @@ function hit() {
   if (score(playerHand) > 21) {
     endRound("You busted!", "lose");
   }
+}
+
+function double() {
+  if (gameOver) return;
+  if (playerHand.length !== 2) return;
+  if (chips < currentBet) return;
+
+  chips -= currentBet;
+  currentBet *= 2;
+
+  deal(playerHand);
+  render();
+
+  if (score(playerHand) > 21) {
+    endRound("Busted on double!", "lose");
+    return;
+  }
+
+  stand();
 }
 
 function stand() {
@@ -228,7 +279,7 @@ function stand() {
   } else if (player > botScore) {
     endRound("You win!", "win");
   } else if (player < botScore) {
-    endRound("Dealer wins.", "lose");
+    endRound("Dealer loses.", "lose");
   } else {
     endRound("Push (tie).", "push");
   }
@@ -238,10 +289,19 @@ function stand() {
 chipBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     addToBet(Number(btn.dataset.value));
+    playSound("bet");
   });
 });
 
-clearBetBtn.addEventListener("click", clearBet);
-dealBtn.addEventListener("click", startRound);
-hitBtn.addEventListener("click", hit);
-standBtn.addEventListener("click", stand);
+function withClickSound(fn) {
+  return () => {
+    playSound("click");
+    fn();
+  };
+}
+
+dealBtn.addEventListener("click", withClickSound(startRound));
+hitBtn.addEventListener("click", withClickSound(hit));
+doubleBtn.addEventListener("click", withClickSound(double));
+standBtn.addEventListener("click", withClickSound(stand));
+clearBetBtn.addEventListener("click", withClickSound(clearBet));
