@@ -12,10 +12,67 @@ body {
   box-sizing: border-box;
 }
 
+#table {
+  background: rgba(0, 0, 0, 0.25);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 700px;
+  margin: 30px auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.zone {
+  background: rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 20px 40px;
+  margin: 15px auto;
+  max-width: 600px;
+}
+
+#chipDisplay {
+  position: fixed;
+  top: 0px;
+  right: 20px;
+  background: radial-gradient(circle, rgba(40, 40, 40, 0.9)یمی, rgba(20, 20, 20, 0.95));
+  border: 2px solid #d4af37;
+  padding: 12px 20px;
+  border-radius: 50px; /* Gives it a sleek pill shape */
+  font-weight: 700;
+  font-size: 18px;
+  color: #f7efca;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Optional: Add a tiny mini-chip visual next to the text */
+#chipDisplay::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-color: #c62828;
+  border: 2px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
 #title {
-  color: black;
-  background: none;
-  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.4);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.15); /* Matches your .zone borders */
+  padding: 15px 40px; /* Much cleaner proportions */
+  border-radius: 16px;
+  font-weight: bold;
+  font-size: 28px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  width: fit-content;
+  margin: 0 auto 20px auto; /* Adds space below it before the table */
 }
 
 .hand {
@@ -27,14 +84,104 @@ body {
 }
 
 .card {
-  background: white;
-  color: black;
-  border-radius: 8px;
-  padding: 20px 15px;
-  font-size: 24px;
+  background: #fdfdfd;
+  color: #111;
+  border-radius: 12px;
+  padding: 0;
+  font-size: 32px;
+  font-weight: 700;
+  width: 70px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s;
+}
+
+.card.hearts,
+.card.diamonds {
+  color: #c62828;
+}
+
+.card.clubs,
+.card.spades {
+  color: #111;
+}
+
+.card.hidden {
+  background: repeating-linear-gradient(
+    45deg,
+    #1a3a8f,
+    #1a3a8f 6px,
+    #2a4a9f 6px,
+    #2a4a9f 12px
+  );
+  color: transparent;
+  border: 1px solid #0d1f4d;
+}
+
+#betTray {
+  background: rgba(60, 40, 20, 0.8);
+  padding: 12px 20px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px auto;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.chipBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 4px dashed rgba(255, 255, 255, 0.8);
   font-weight: bold;
-  min-width: 40px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 0 0 4px rgba(255, 255, 255, 0.2);
+  transition: transform 0.1s, filter 0.1s;
+}
+
+.chipBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+}
+
+.chipBtn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.chipBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chip-5  { background: #c62828; }   /* red */
+.chip-10 { background: #1565c0; }   /* blue */
+.chip-25 { background: #2e7d32; }
+
+#clearBetBtn {
+  background: #555;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#clearBetBtn:hover {
+  filter: brightness(1.15);
 }
 
 #status {
@@ -65,9 +212,8 @@ button:active:not(:disabled) {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.invisible {
+  display: none;
 }
 
 #dealBtn {
