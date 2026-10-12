@@ -10,24 +10,38 @@
 
   <h1 id="title">Blackjack</h1>
 
-  <div id="dealer">
-    <h2>Dealer</h2>
-    <div id="dealerHand" class="hand"></div>
-    <p id="dealerScore">0</p>
+  <div id="stats">
+    <p id="chipDisplay">Chips: <span id="chips">100</span></p>
   </div>
 
-  <div id="player">
-    <h2>You</h2>
-    <div id="playerHand" class="hand"></div>
-    <p id="playerScore">0</p>
+  <div id="table">
+    <div id="dealer" class="zone">
+      <h2>Dealer</h2>
+      <div id="dealerHand" class="hand"></div>
+      <p>Card Total: <span id="dealerScore">?</span></p>
+    </div>
+
+    <div id="player" class="zone">
+      <h2>You</h2>
+      <div id="playerHand" class="hand"></div>
+      <p>Card Total: <span id="playerScore">0</span></p>
+      <p>Bet: <span id="playerBet">0</span></p>
+    </div>
   </div>
 
-  <p id="status">Playing...</p>
+  <p id="status">Click <span style="color: gold;">"deal"</span> to start!</p>
 
   <div id="controls">
     <button id="dealBtn">Deal</button>
-    <button id="hitBtn" disabled>Hit</button>
-    <button id="standBtn" disabled>Stand</button>
+    <button id="hitBtn" class="invisible">Hit</button>
+    <button id="standBtn" class="invisible">Stand</button>
+  </div>
+  <br>
+  <div id="betTray">
+    <button class="chipBtn chip-5" data-value="5">5</button>
+    <button class="chipBtn chip-10" data-value="10">10</button>
+    <button class="chipBtn chip-25" data-value="25">25</button>
+    <button id="clearBetBtn">Clear</button>
   </div>
   <script src="script.js"></script>
 </body>
