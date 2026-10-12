@@ -3,22 +3,8 @@ let deck = [];
 let playerHand = [];
 let botHand = [];
 let gameOver = false;
-
-function reset() {
-  deck = [];
-  playerHand = [];
-  botHand = [];
-  gameOver = false;
-}
-
-function endRound(message) {
-  gameOver = true;
-  render();
-  statusEl.textContent = message;
-  dealBtn.disabled = false;
-  hitBtn.disabled = true;
-  standBtn.disabled = true;
-}
+let chips = 100;
+let currentBet = 0;
 
 // ---- Element references ----
 const playerHandEl = document.querySelector("#playerHand");
@@ -31,77 +17,46 @@ const dealBtn = document.querySelector("#dealBtn");
 const hitBtn = document.querySelector("#hitBtn");
 const standBtn = document.querySelector("#standBtn");
 
-// Fisher Yates shuffle, great but simple "realistic" shuffling
+const chipsEl = document.querySelector("#chips");
+const playerBetEl = document.querySelector("#playerBet");
+const chipBtns = document.querySelectorAll(".chipBtn");
+const clearBetBtn = document.querySelector("#clearBetBtn");
+
+// ---- Deck ----
 function shuffle(deck) {
   for (let i = deck.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1)); // take random index from 0-i, ensuring j could equal i itself
+    let j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
 }
 
 function createDeck() {
-  deck = [
-  { suit: "hearts", value: "2" },
-  { suit: "hearts", value: "3" },
-  { suit: "hearts", value: "4" },
-  { suit: "hearts", value: "5" },
-  { suit: "hearts", value: "6" },
-  { suit: "hearts", value: "7" },
-  { suit: "hearts", value: "8" },
-  { suit: "hearts", value: "9" },
-  { suit: "hearts", value: "10" },
-  { suit: "hearts", value: "J" },
-  { suit: "hearts", value: "Q" },
-  { suit: "hearts", value: "K" },
-  { suit: "hearts", value: "A" },
-  { suit: "diamonds", value: "2" },
-  { suit: "diamonds", value: "3" },
-  { suit: "diamonds", value: "4" },
-  { suit: "diamonds", value: "5" },
-  { suit: "diamonds", value: "6" },
-  { suit: "diamonds", value: "7" },
-  { suit: "diamonds", value: "8" },
-  { suit: "diamonds", value: "9" },
-  { suit: "diamonds", value: "10" },
-  { suit: "diamonds", value: "J" },
-  { suit: "diamonds", value: "Q" },
-  { suit: "diamonds", value: "K" },
-  { suit: "diamonds", value: "A" },
-  { suit: "clubs", value: "2" },
-  { suit: "clubs", value: "3" },
-  { suit: "clubs", value: "4" },
-  { suit: "clubs", value: "5" },
-  { suit: "clubs", value: "6" },
-  { suit: "clubs", value: "7" },
-  { suit: "clubs", value: "8" },
-  { suit: "clubs", value: "9" },
-  { suit: "clubs", value: "10" },
-  { suit: "clubs", value: "J" },
-  { suit: "clubs", value: "Q" },
-  { suit: "clubs", value: "K" },
-  { suit: "clubs", value: "A" },
-  { suit: "spades", value: "2" },
-  { suit: "spades", value: "3" },
-  { suit: "spades", value: "4" },
-  { suit: "spades", value: "5" },
-  { suit: "spades", value: "6" },
-  { suit: "spades", value: "7" },
-  { suit: "spades", value: "8" },
-  { suit: "spades", value: "9" },
-  { suit: "spades", value: "10" },
-  { suit: "spades", value: "J" },
-  { suit: "spades", value: "Q" },
-  { suit: "spades", value: "K" },
-  { suit: "spades", value: "A" }
-];
-  shuffle(deck);
-} // Create the deck
+  const suits = ["hearts", "diamonds", "clubs", "spades"];
+  const values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 
+  deck = [];
+  for (const suit of suits) {
+    for (const value of values) {
+      deck.push({ suit, value });
+    }
+  }
+
+  shuffle(deck);
+}
+
+function deal(hand) {
+  if (deck.length === 0) {
+    createDeck();
+  }
+  hand.push(deck.pop());
+}
+
+// ---- Scoring ----
 function cardPoints(card) {
   if (card.value === "A") return 11;
   if (card.value === "K" || card.value === "Q" || card.value === "J") return 10;
   return Number(card.value);
-} // get point of card
+}
 
 function score(hand) {
   let total = 0;
@@ -121,15 +76,17 @@ function score(hand) {
     aces--;
   }
   return total;
-} // get the score of a hand
+}
 
-function deal(hand) {
-  if (deck.length === 0) {
-    createDeck()
-  }
-  hand.push(deck.pop());
-} // deal a card to a set hand (shuffles automatically)
+function suitSymbol(suit) {
+  if (suit === "hearts") return "♥";
+  if (suit === "diamonds") return "♦";
+  if (suit === "clubs") return "♣";
+  if (suit === "spades") return "♠";
+  return "";
+}
 
+// ---- Dealer ----
 function bot() {
   while (score(botHand) < 17) {
     deal(botHand);
@@ -143,36 +100,82 @@ function render() {
 
   for (const card of playerHand) {
     const el = document.createElement("div");
-    el.className = "card";
-    el.textContent = card.value;
+    el.className = "card " + card.suit;
+    el.textContent = card.value + suitSymbol(card.suit);
     playerHandEl.appendChild(el);
   }
 
   for (let i = 0; i < botHand.length; i++) {
     const el = document.createElement("div");
-    el.className = "card";
+    el.className = "card " + botHand[i].suit;
 
     if (i === 1 && !gameOver) {
-      el.textContent = "🂠";
-      el.classList.add("hidden");
+      el.textContent = "";
+      el.className = "card hidden";
     } else {
-      el.textContent = botHand[i].value;
+      el.textContent = botHand[i].value + suitSymbol(botHand[i].suit);
     }
 
     dealerHandEl.appendChild(el);
   }
 
   playerScoreEl.textContent = score(playerHand);
-
-  // only show dealer score when revealed
   dealerScoreEl.textContent = gameOver ? score(botHand) : "?";
+
+  chipsEl.textContent = chips;
+  playerBetEl.textContent = currentBet;
 }
 
-// ---- Game actions ----
-function startRound() {
-  statusEl.textContent = "Playing..."
-  reset()
+// ---- Betting ----
+function addToBet(amount) {
+  if (currentBet + amount > chips) return;
+  currentBet += amount;
+  render();
+}
 
+function clearBet() {
+  currentBet = 0;
+  render();
+}
+
+// ---- Round flow ----
+function reset() {
+  deck = [];
+  playerHand = [];
+  botHand = [];
+  gameOver = false;
+}
+
+function endRound(message, result) {
+  if (result === "win") chips += currentBet * 2;
+  else if (result === "push") chips += currentBet;
+  else if (result === "blackjack") chips += currentBet * 2.5;
+
+  currentBet = 0;
+
+  gameOver = true;
+  render();
+  statusEl.textContent = message;
+
+  dealBtn.classList.remove("invisible");
+  hitBtn.classList.add("invisible");
+  standBtn.classList.add("invisible");
+
+  if (chips <= 0) {
+    statusEl.textContent = "Out of chips — game over!";
+    dealBtn.classList.add("invisible");
+    chipBtns.forEach(btn => btn.disabled = true);
+  }
+}
+
+function startRound() {
+  if (currentBet === 0) return;
+  if (currentBet > chips) return;
+
+  chips -= currentBet;
+
+  statusEl.textContent = "Playing...";
+  reset();
   createDeck();
 
   deal(playerHand);
@@ -184,32 +187,30 @@ function startRound() {
   const dealerBJ = botHand.length === 2 && score(botHand) === 21;
 
   if (playerBJ && dealerBJ) {
-    endRound("Both blackjack, push.");
+    endRound("Both blackjack, push.", "push");
     return;
   } else if (playerBJ) {
-    endRound("Blackjack! You win!");
+    endRound("Blackjack! You win!", "blackjack");
     return;
   } else if (dealerBJ) {
-    bot();
-    endRound("Dealer blackjack, you lose.");
+    endRound("Dealer blackjack, you lose.", "lose");
     return;
   }
 
   render();
-  dealBtn.disabled = true;
-  hitBtn.disabled = false;
-  standBtn.disabled = false;
+  dealBtn.classList.add("invisible");
+  hitBtn.classList.remove("invisible");
+  standBtn.classList.remove("invisible");
 }
 
 function hit() {
   if (gameOver) return;
 
   deal(playerHand);
-
   render();
 
   if (score(playerHand) > 21) {
-    endRound("You busted!");
+    endRound("You busted!", "lose");
   }
 }
 
@@ -223,17 +224,24 @@ function stand() {
   const botScore = score(botHand);
 
   if (botScore > 21) {
-    endRound("Dealer busted — you win!");
+    endRound("Dealer busted — you win!", "win");
   } else if (player > botScore) {
-    endRound("You win!");
+    endRound("You win!", "win");
   } else if (player < botScore) {
-    endRound("Dealer wins.");
+    endRound("Dealer wins.", "lose");
   } else {
-    endRound("Push (tie).");
+    endRound("Push (tie).", "push");
   }
 }
 
 // ---- Events ----
+chipBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    addToBet(Number(btn.dataset.value));
+  });
+});
+
+clearBetBtn.addEventListener("click", clearBet);
 dealBtn.addEventListener("click", startRound);
 hitBtn.addEventListener("click", hit);
 standBtn.addEventListener("click", stand);
